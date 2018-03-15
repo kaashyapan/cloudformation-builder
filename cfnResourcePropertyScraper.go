@@ -30,6 +30,9 @@ type Property struct {
 type AwsResource struct {
 	ResourcePropertyName string
 	Properties           []Property
+	Json                 string
+	Yaml                 string
+	Doc                  string
 }
 
 func main() {
@@ -46,7 +49,7 @@ func main() {
 			s.Find("li").Each(func(i int, s *goquery.Selection) {
 				href, ok := s.Children().Attr("href")
 				if ok == true {
-					//			if i == 58 {
+					//if i == 58 {
 					resourceDef, err := scrapeResourceTemplate(href)
 
 					if err != nil {
@@ -80,16 +83,45 @@ func scrapeResourceTemplate(docHref string) (res AwsResource, e error) {
 	id := "#" + strings.TrimSuffix(docHref, ".html")
 
 	property := make([]Property, 0)
+	var json = []string{}
+	var yaml = []string{}
 
 	doc, err := goquery.NewDocument(path + docHref)
 	if err != nil {
 		return res, err
 	}
+
+	res.Doc = path + docHref
+
 	doc.Find(id).Each(func(i int, s *goquery.Selection) {
 		res.ResourcePropertyName = cleanString(s.Text())
 	})
 
 	fmt.Println("Scraping... ", res.ResourcePropertyName)
+
+	// Get Json & YAML
+
+	doc.Find("#JSON").Each(func(i int, s *goquery.Selection) {
+		section := s
+		section.Find(".programlisting").Each(func(i int, s *goquery.Selection) {
+			json = append(json, s.Text())
+		})
+	})
+
+	doc.Find("#YAML").Each(func(i int, s *goquery.Selection) {
+		section := s
+		section.Find(".programlisting").Each(func(i int, s *goquery.Selection) {
+			yaml = append(yaml, s.Text())
+		})
+	})
+
+	if len(json) > 0 {
+		res.Json = json[0]
+	}
+
+	if len(yaml) > 0 {
+		res.Yaml = yaml[0]
+	}
 
 	// Get properties
 	doc.Find(".variablelist").Each(func(i int, s *goquery.Selection) {
