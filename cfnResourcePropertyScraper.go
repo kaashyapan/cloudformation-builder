@@ -33,6 +33,7 @@ type AwsResource struct {
 	Json                 string
 	Yaml                 string
 	Doc                  string
+	Description          string
 }
 
 func main() {
@@ -96,6 +97,8 @@ func scrapeResourceTemplate(docHref string) (res AwsResource, e error) {
 	doc.Find(id).Each(func(i int, s *goquery.Selection) {
 		res.ResourcePropertyName = cleanString(s.Text())
 	})
+
+	res.Description = doc.Find(id).First().Next().Text()
 
 	fmt.Println("Scraping... ", res.ResourcePropertyName)
 

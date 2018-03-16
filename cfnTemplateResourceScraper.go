@@ -40,6 +40,7 @@ type AwsResource struct {
 	Json         string
 	Yaml         string
 	Doc          string
+	Description  string
 	ReturnValues []Attribute
 }
 
@@ -57,13 +58,13 @@ func main() {
 			s.Find("li").Each(func(i int, s *goquery.Selection) {
 				href, ok := s.Children().Attr("href")
 				if ok == true {
-					//		if i == 58 {
+					// if i == 58 {
 					resourceDef, err := scrapeResourceTemplate(href)
 					if err != nil {
 						log.Println(err)
 					}
 					allAWSResources = append(allAWSResources, resourceDef)
-					//		}
+					// }
 				}
 			})
 		})
@@ -99,6 +100,8 @@ func scrapeResourceTemplate(docHref string) (res AwsResource, e error) {
 	doc.Find(id).Each(func(i int, s *goquery.Selection) {
 		res.ResourceName = cleanString(s.Text())
 	})
+
+	res.Description = doc.Find(id).First().Next().Text()
 
 	fmt.Println("Scraping... ", res.ResourceName)
 
